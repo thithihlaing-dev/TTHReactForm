@@ -1,16 +1,21 @@
-import { FormEvent, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
+import {z} from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod/dist/zod.js";
 
-interface FormData {
-  name: string;
-  age: number;
-}
+const schema = z.object({
+  name: z.string().min(3,{ message: 'Name must be at least 3 characters'}),
+  age: z.number({invalid_type_error: 'Age field is required.'}).min(18, {message:'Age must be at least 18'})
+})
+
+
+type FormData = z.infer<typeof schema>;
+
 const Form = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>();
+  } = useForm<FormData>({ resolver: zodResolver(schema)});
   const onSubmit = (data: FieldValues) => console.log(data);
 
   return (
@@ -20,21 +25,17 @@ const Form = () => {
           Name
         </label>
         <input
-          {...register("name" ,{ required: true, minLength: 3})}
+          {...register("name")}
           id="name"
           type="text"
           className="w-32 border-2"
         />
-        {errors.name?.type === "required" && (
+        {errors.name && (
             <p className="text-red-500">
-              The name field is required.
+              {errors.name.message}
             </p>
         )}
-        {errors.name?.type === "minLength" && (
-          <p className="text-red-500">
-            The name must be at least 3 character.
-          </p>
-        )}
+        
       </div>
 
       <div className="mb-3">
@@ -42,14 +43,14 @@ const Form = () => {
           Age
         </label>
         <input
-          {...register("age" ,{required:true})}
+          {...register("age" , {valueAsNumber : true})}
           id="age"
           type="number"
           className="w-32 border-2"
         />
-        {errors.name?.type === "required" && (
+        {errors.age && (
             <p className="text-red-500">
-              The name field is required.
+              {errors.age.message}
             </p>
         )}
         
